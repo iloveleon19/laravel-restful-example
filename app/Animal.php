@@ -29,9 +29,17 @@ class Animal extends Model
      */
     public function getAgeAttribute()
     {
-        // Carbon 用法 ???
         $diff = Carbon::now()->diff($this->birthday);
         return "{$diff->y}歲{$diff->m}月";
     }
 
+    public function user()
+    {
+        return $this->belongsTo('App\User');
+    }
+
+    public function like()
+    {
+        return $this->belongsToMany('App\User')->withTimestamps();
+    }
 }

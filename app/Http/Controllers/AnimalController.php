@@ -7,8 +7,16 @@ use Illuminate\Http\Request;
 use Symfony\Component\HttpFoundation\Response;
 use App\Http\Resources\AnimalResource;
 
+use Auth;
+
 class AnimalController extends Controller
 {
+
+    public function __construct()
+    {
+        $this->middleware('auth:api', ['except'=>['index','show']]);
+    }
+
     /**
      * Display a listing of the resource.
      *
@@ -118,6 +126,7 @@ class AnimalController extends Controller
      */
     public function update(Request $request, Animal $animal)
     {
+        $this->authorize('update', $animal);
         $animal->update($request->all());
         return response($animal, Response::HTTP_OK);
     }
@@ -131,6 +140,12 @@ class AnimalController extends Controller
     public function destroy(Animal $animal)
     {
         $animal->delete();
+        return response(null, Response::HTTP_NO_CONTENT);
+    }
+
+    public function like(Animal $animal)
+    {
+        $animal->like()->toggle(Auth::user()->id);
         return response(null, Response::HTTP_NO_CONTENT);
     }
 }

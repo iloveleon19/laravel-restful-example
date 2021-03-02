@@ -14,8 +14,6 @@ class AnimalResource extends JsonResource
      */
     public function toArray($request)
     {
-        // TypeResource 怎麼加入的
-        // toDateTimeString 是哪邊的方法
         return [
             'id' => $this->id,
             'type' => new TypeResource($this->type),
