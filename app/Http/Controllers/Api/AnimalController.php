@@ -1,19 +1,26 @@
 <?php
 
-namespace App\Http\Controllers;
+namespace App\Http\Controllers\Api;
 
+use App\Http\Controllers\Controller;
 use App\Animal;
 use Illuminate\Http\Request;
 use Symfony\Component\HttpFoundation\Response;
 use App\Http\Resources\AnimalResource;
+
+use App\Http\Requests\StoreAnimalRequest;
+use App\Services\AnimalService;
 
 use Auth;
 
 class AnimalController extends Controller
 {
 
-    public function __construct()
+    private $animalService;
+
+    public function __construct(AnimalService $animalService)
     {
+        $this->animalService = $animalService;
         $this->middleware('auth:api', ['except'=>['index','show']]);
     }
 
@@ -24,42 +31,17 @@ class AnimalController extends Controller
      */
     public function index(Request $request)
     {
-        $marker = $request->marker==null ? 1: $request->marker;
-        $limit = $request->limit==null ? 10 : $request->limit;
+        $marker = isset($request->marker) ? $request->marker : 1;
+        $limit = isset($request->limit) ? $request->limit : 10;
 
         $query = Animal::query();
 
-        // 篩選欄位條件
-        if(isset($request->filters)){
-            $filters = explode(',', $request->filters);
-            foreach($filters as $key => $filter){
-                list($criteria, $value) = explode(':', $filter);
-                $query->where($criteria, 'like', "%$value%");
-            }
-        }
-
-        // 排序順序
-        if(isset($request->sort)){
-            $sorts = explode(',', $request->sort);
-            foreach($sorts as $key => $sort){
-                list($criteria, $value) = explode(':', $sort);
-                if($value == 'asc' || $value=='desc') {
-                    $query->orderBy($criteria, $value);
-                }
-            }
-        }else{
-            $query->orderBy('id','asc');
-        }
+        $query = $this->animalService->filterAnimals($request->filters, $query);
+        $query = $this->animalService->sortAnimals($request->sort, $query);
 
         $animals = $query->where('id','>=', $marker)->paginate($limit);
 
         return response($animals, Response::HTTP_OK);
-
-        // $animals = Animal::orderBy('id', 'asc')->where('id', '>=', $marker)->limit($limit)->get();
-        $animals = Animal::orderBy('id', 'asc')->where('id', '>=', $marker)->paginate($limit)->get();
-
-        $animals = Animal::get();
-        return response(['animals'=>$animals], Response::HTTP_OK);
     }
 
     /**
@@ -75,20 +57,20 @@ class AnimalController extends Controller
     /**
      * Store a newly created resource in storage.
      *
-     * @param  \Illuminate\Http\Request  $request
+     * @param  App\Http\Requests\StoreAnimalRequest  $request
      * @return \Illuminate\Http\Response
      */
-    public function store(Request $request)
+    public function store(StoreAnimalRequest $request)
     {
-        $result = $this->validate($request, [
-            'type_id' => 'required',
-            'name' => 'required|max:255',
-            'birthday' => 'required|date',
-            'area' => 'required|max:255',
-            'fix' => 'required|boolean',
-            'description' => 'nullable',
-            'personality' => 'nullable'
-        ]);
+        // $this->validate($request, [
+        //     'type_id' => 'required',
+        //     'name' => 'required|max:255',
+        //     'birthday' => 'required|date',
+        //     'area' => 'required|max:255',
+        //     'fix' => 'required|boolean',
+        //     'description' => 'nullable',
+        //     'personality' => 'nullable'
+        // ]);
 
         $animal = Animal::create($request->all());
         return response($animal, Response::HTTP_CREATED);
