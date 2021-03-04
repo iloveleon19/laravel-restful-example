@@ -25,12 +25,19 @@ class AnimalController extends Controller
     }
 
     /**
-     * Display a listing of the resource.
-     *
+     * Show Animal List
+     * 
+     * @queryParam maker 標記由哪個資源開始查詢(預設ID:1) Example: 1
+     * @queryParam limit 設定回傳資料筆數(預設10筆資料) Example: 10
+     * @queryParam sort 設定排序方式 Example: name:asc
+     * @queryParam filter 設定排序方式 Example: name:john
+     * 
+     * @param \Illuminate\Http\Request $request
      * @return \Illuminate\Http\Response
      */
     public function index(Request $request)
     {
+        // 預設值
         $marker = isset($request->marker) ? $request->marker : 1;
         $limit = isset($request->limit) ? $request->limit : 10;
 
@@ -45,18 +52,18 @@ class AnimalController extends Controller
     }
 
     /**
-     * Show the form for creating a new resource.
-     *
-     * @return \Illuminate\Http\Response
-     */
-    public function create()
-    {
-        //
-    }
-
-    /**
-     * Store a newly created resource in storage.
-     *
+     * Store Animal
+     * 
+     * @authenticated
+     * 
+     * @bodyParam type_id Int required 動物的分類ID(需參照types資料表) Example: 1
+     * @bodyParam name String required 動物名稱 Example: 黑熊
+     * @bodyParam birthday date required 生日 Example: 2019-10-10
+     * @bodyParam area String required 所在區域 Example: 台北市
+     * @bodyParam fix boolean required 是否結紮 Example: true
+     * @bodyParam description text 簡易描述 Example: 黑狗，胸前有白毛！宛如台灣黑 
+     * @bodyParam personality text 其他介紹 Example: 非常親人！很可愛～
+     * 
      * @param  App\Http\Requests\StoreAnimalRequest  $request
      * @return \Illuminate\Http\Response
      */
@@ -77,7 +84,7 @@ class AnimalController extends Controller
     }
 
     /**
-     * Display the specified resource.
+     * Show Animal
      *
      * @param  \App\Animal  $animal
      * @return \Illuminate\Http\Response
@@ -89,19 +96,18 @@ class AnimalController extends Controller
     }
 
     /**
-     * Show the form for editing the specified resource.
-     *
-     * @param  \App\Animal  $animal
-     * @return \Illuminate\Http\Response
-     */
-    public function edit(Animal $animal)
-    {
-        //
-    }
-
-    /**
-     * Update the specified resource in storage.
-     *
+     * Update Animal
+     * 
+     * @bodyParam type_id Int required 動物的分類ID(需參照types資料表) Example: 1
+     * @bodyParam name String required 動物名稱 Example: 黑熊
+     * @bodyParam birthday date required 生日 Example: 2019-10-10
+     * @bodyParam area String required 所在區域 Example: 台北市
+     * @bodyParam fix boolean required 是否結紮 Example: true
+     * @bodyParam description text 簡易描述 Example: 黑狗，胸前有白毛！宛如台灣黑熊
+     * @bodyParam personality text 其他介紹 Example: 非常親人！很可愛～
+     * 
+     * @authenticated
+     * 
      * @param  \Illuminate\Http\Request  $request
      * @param  \App\Animal  $animal
      * @return \Illuminate\Http\Response
@@ -114,8 +120,10 @@ class AnimalController extends Controller
     }
 
     /**
-     * Remove the specified resource from storage.
-     *
+     * Delete Animal
+     * 
+     * @authenticated
+     * 
      * @param  \App\Animal  $animal
      * @return \Illuminate\Http\Response
      */
@@ -125,6 +133,14 @@ class AnimalController extends Controller
         return response(null, Response::HTTP_NO_CONTENT);
     }
 
+    /**
+     * Like/Unlike Animal
+     *
+     * @authenticated
+     * 
+     * @param  \App\Animal  $animal
+     * @return \Illuminate\Http\Response
+     */
     public function like(Animal $animal)
     {
         $animal->like()->toggle(Auth::user()->id);
